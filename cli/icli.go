@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"regexp"
 )
 
 // interactive
@@ -60,7 +61,8 @@ func (l *iCli) ReadLine() (string, bool, error) {
 			if l.status.joinedByTripleQuotes || l.status.joinedByBackSlash {
 				continue
 			}
-			if len(l.status.line) > 0 {
+			withPassword := isCmdWithPassword(l.status.line)
+			if len(l.status.line) > 0 && !withPassword {
 				l.terminal.AppendHistory(l.status.line)
 			}
 			return l.status.line, false, nil
@@ -116,4 +118,10 @@ func (l *iCli) Close() {
 	}
 	defer f.Close()
 	l.terminal.WriteHistory(f)
+}
+
+var passwordCommandPattern = regexp.MustCompile(`(?i)(password|pwd)`)
+
+func isCmdWithPassword(cmd string) bool {
+	return passwordCommandPattern.MatchString(cmd)
 }
